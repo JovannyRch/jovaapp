@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:jova_app/models/CategoryPayments.dart';
 import 'package:jova_app/models/Customer.dart';
 import 'package:jova_app/models/PaymentsCategory.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
@@ -55,6 +54,15 @@ class Api {
       return details;
     } catch (error) {
       print("Error al obtener datos: $error");
+      throw error;
+    }
+  }
+
+  static Future deletePaymentCategory(int categoryId) async {
+    try {
+      await dio.delete('$API_URL/payments_categories/$categoryId');
+    } catch (error) {
+      print("Error al eliminar la categoría de pago: $error");
       throw error;
     }
   }

@@ -6,6 +6,7 @@ import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
 import 'package:jova_app/screens/details_payment.dart';
 import 'package:jova_app/screens/new_payment_page.dart';
 import 'package:jova_app/utiilts/formatCurrency.dart';
+import 'package:jova_app/utiilts/formatDate.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
@@ -25,6 +26,7 @@ class _DetailsPaymentsCategoryScreenState
   String title = "";
   PaymentCategoryDetailsResponse? response;
   bool _isLoading = true;
+  bool hasBudget = false;
 
   @override
   void initState() {
@@ -32,19 +34,19 @@ class _DetailsPaymentsCategoryScreenState
     refresh();
   }
 
-  void refresh() {
+  Future refresh() async {
     setState(() {
       _isLoading = true;
     });
-    Api.fetchPaymentCategoryDetails(widget.categoryId).then((value) {
-      setState(() {
-        response = value;
-        title = response!.name!;
-      });
-    }).whenComplete(() {
-      setState(() {
-        _isLoading = false;
-      });
+    final value = await Api.fetchPaymentCategoryDetails(widget.categoryId);
+
+    setState(() {
+      response = value;
+      title = response!.name!;
+      hasBudget = response!.budget != null &&
+          response!.budget!.isNotEmpty &&
+          double.parse(response!.budget!) > 0;
+      _isLoading = false;
     });
   }
 
@@ -59,7 +61,7 @@ class _DetailsPaymentsCategoryScreenState
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () async {
-              await Navigator.push(
+              Payment? payment = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => NewPaymentPage(
@@ -67,7 +69,19 @@ class _DetailsPaymentsCategoryScreenState
                   ),
                 ),
               );
-              setState(() {});
+
+              if (payment != null) {
+                await refresh();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetailsPayment(
+                      payment: payment,
+                      category: response!,
+                    ),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -79,8 +93,30 @@ class _DetailsPaymentsCategoryScreenState
             )
           : SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _header(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          onDelete();
+                        },
+                        child: const Text(
+                          "Eliminar",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                      /*   TextButton(
+                        onPressed: () {
+                          onDelete();
+                        },
+                        child: const Text("Editar"),
+                      ), */
+                    ],
+                  ),
                   const SizedBox(height: 10),
                   _payments(),
                 ],
@@ -91,43 +127,82 @@ class _DetailsPaymentsCategoryScreenState
 
   Widget _header() {
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0),
       child: InfoCard(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Info(
-              title: "Presupuesto total",
-              content: formatCurrency(double.tryParse(
-                    response!.budget!,
-                  ) ??
-                  0),
-            ),
+            Info(title: "Responsable", content: response!.customer!.name!),
             const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Info(
-                    title: "Pagado",
-                    content: formatCurrency(double.parse(response!.total!))),
-                const SizedBox(height: 15),
-                Info(
-                  title: "Restante",
-                  content: formatCurrency(
-                    double.parse(response!.budget!) -
-                        double.parse(response!.total!),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-            progressIndicator(),
+            if (hasBudget) ..._budgetElements(),
+            if (!hasBudget)
+              Info(
+                title: "Total pagado",
+                content: formatCurrency(double.parse(response!.total!)),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  void onDelete() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Eliminar"),
+          content: const Text(
+              "¿Estás seguro de que deseas eliminar esta categoría?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Cancelar"),
+            ),
+            TextButton(
+              onPressed: () {
+                Api.deletePaymentCategory(widget.categoryId).then((value) {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                });
+              },
+              child: const Text("Eliminar"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<Widget> _budgetElements() {
+    return [
+      Info(
+        title: "Presupuesto",
+        content: formatCurrency(double.parse(response!.budget!)),
+      ),
+      const SizedBox(height: 15),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Info(
+              title: "Pagado",
+              content: formatCurrency(double.parse(response!.total!))),
+          const SizedBox(height: 15),
+          Info(
+            title: "Restante",
+            content: formatCurrency(
+              double.parse(response!.budget!) - double.parse(response!.total!),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 15),
+      progressIndicator(),
+    ];
   }
 
   Widget progressIndicator() {
@@ -202,7 +277,7 @@ class _DetailsPaymentsCategoryScreenState
   Widget _paymentCard(Payment payment, bool isLast) {
     var listTile = ListTile(
       title: Text(
-        payment.date.toString(),
+        formatDate(payment.date!),
         style: const TextStyle(
           fontSize: 14.0,
           color: kSubtitleColor,
@@ -223,6 +298,7 @@ class _DetailsPaymentsCategoryScreenState
           MaterialPageRoute(
             builder: (context) => DetailsPayment(
               payment: payment,
+              category: response!,
             ),
           ),
         );

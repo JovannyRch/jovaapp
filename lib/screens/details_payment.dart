@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:jova_app/const/conts.dart';
 import 'package:jova_app/models/CategoryPayments.dart';
+import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
 import 'package:jova_app/utiilts/formatCurrency.dart';
+import 'package:jova_app/utiilts/formatDate.dart';
 import 'package:jova_app/utiilts/sendWhatsAppMessage.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
 class DetailsPayment extends StatelessWidget {
   final Payment payment;
+  final PaymentCategoryDetailsResponse category;
 
-  const DetailsPayment({Key? key, required this.payment}) : super(key: key);
+  const DetailsPayment({
+    Key? key,
+    required this.payment,
+    required this.category,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +34,11 @@ class DetailsPayment extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Info(
+                    title: "Categoría",
+                    content: category.name!,
+                  ),
+                  const SizedBox(height: 15),
+                  Info(
                     title: "Monto",
                     content: formatCurrency(
                       double.parse(
@@ -37,7 +49,7 @@ class DetailsPayment extends StatelessWidget {
                   const SizedBox(height: 15),
                   Info(
                     title: "Fecha",
-                    content: payment.date.toString(),
+                    content: formatDate(payment.date!),
                   ),
                   if (payment.notes != null)
                     Column(
@@ -50,20 +62,33 @@ class DetailsPayment extends StatelessWidget {
                         ),
                       ],
                     ),
+                  const Divider(
+                    height: 20.0,
+                  ),
+                  Info(
+                    title: "Acomulado",
+                    content: formatCurrency(
+                      double.parse(
+                        category.total.toString(),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                String message = "Pago #${payment.id}:\n\n";
+                String message = "Registro de Pago - ${category.name}\n\n";
                 message +=
                     "Monto: ${formatCurrency(double.parse(payment.amount.toString()))}\n";
-                message += "Fecha: ${payment.date}\n";
+                message += "Fecha: ${formatDate(payment.date!)}\n";
                 if (payment.notes != null) {
                   message += "Notas: ${payment.notes}\n";
                 }
-                sendWhatsAppMessage(message, "7226227577");
+                message +=
+                    "\nTotal acomulado: ${formatCurrency(double.parse(category.total.toString()))}\n";
+                sendWhatsAppMessage(message, category.customer!.phoneNumber!);
               },
               child: const Text("Enviar por WhatsApp"),
             ),

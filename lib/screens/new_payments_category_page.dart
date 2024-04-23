@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/models/Customer.dart';
-import 'package:jova_app/screens/custumers_screen.dart';
+import 'package:jova_app/screens/customers_screen.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
 class NewPaymentsCategoryPage extends StatefulWidget {
@@ -28,6 +28,17 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
   @override
   void initState() {
     super.initState();
+    _openCustomerScreen();
+  }
+
+  void _openCustomerScreen() async {
+    await Future.delayed(Duration.zero);
+
+    customer = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CustomersScreen()),
+    );
+    setState(() {});
   }
 
   Future<void> submitPayment() async {
@@ -65,22 +76,10 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              if (customer == null)
-                TextButton(
-                  onPressed: () async {
-                    customer = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => CustumersScreen()),
-                    );
-                    setState(() {});
-                  },
-                  child: const Text('Seleccionar Cliente'),
-                ),
               if (customer != null)
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Info(
                       title: "Cliente seleccionado",
@@ -91,15 +90,21 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
                         customer = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => CustumersScreen()),
+                              builder: (context) => const CustomersScreen()),
                         );
                         setState(() {});
                       },
-                      child: Text('Cambiar Cliente'),
+                      child: const Text(
+                        'Cambiar Cliente',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontSize: 11.0,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10.0),
               TextFormField(
                 controller: _nameController,
                 decoration:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/models/CategoryPayments.dart';
+import 'package:jova_app/widgets/DateInputPicket.dart';
 
 class NewPaymentPage extends StatefulWidget {
   final int categoryId;
@@ -17,6 +18,12 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   final _amountController = TextEditingController();
   final _dateController = TextEditingController();
   final _notesController = TextEditingController();
+
+  @override
+  initState() {
+    super.initState();
+    _dateController.text = DateTime.now().toString().substring(0, 10);
+  }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
@@ -39,9 +46,10 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
         'date': payment.date,
         'notes': payment.notes,
       });
-      if (response.statusCode == 200) {
-        print('Pago registrado con éxito');
-        Navigator.pop(context); // Vuelve si el pago es exitoso
+
+      if (response.statusCode == 201) {
+        Payment newPayment = Payment.fromJson(response.data);
+        Navigator.pop(context, newPayment);
       } else {
         print('Error al registrar el pago');
       }
@@ -61,21 +69,31 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
         child: ListView(
           padding: EdgeInsets.all(16.0),
           children: <Widget>[
+            DateInputPicker(
+              title: 'Fecha',
+              content: _dateController.text,
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (date != null) {
+                  setState(() {
+                    _dateController.text = date.toString().substring(0, 10);
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 5),
             TextFormField(
               controller: _amountController,
+              autofocus: true,
               decoration: InputDecoration(labelText: 'Monto'),
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value!.isEmpty) return 'Por favor, ingrese el monto';
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _dateController,
-              decoration: InputDecoration(labelText: 'Fecha'),
-              keyboardType: TextInputType.datetime,
-              validator: (value) {
-                if (value!.isEmpty) return 'Por favor, ingrese la fecha';
                 return null;
               },
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:jova_app/api/api.dart';
+import 'package:jova_app/models/Customer.dart';
 
 class NewClientPage extends StatefulWidget {
   @override
@@ -23,11 +24,17 @@ class _NewClientPageState extends State<NewClientPage> {
   Future<void> submitClient() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await _dio.post("$API_URL/customers", data: {
+        var response = await _dio.post("$API_URL/customers", data: {
           'name': _nameController.text,
           'phone_number': _phoneNumberController.text
         });
-        Navigator.pop(context); // Regresar a la pantalla anterior si es exitoso
+        print("Status code");
+        print(response.statusCode);
+        //Parse to customer
+        Customer customer = Customer.fromJson(response.data);
+
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context, customer);
       } catch (e) {
         print("Error al enviar los datos: $e");
         // Mostrar un mensaje de error o dialog aquí

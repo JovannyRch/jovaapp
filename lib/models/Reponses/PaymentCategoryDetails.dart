@@ -9,7 +9,7 @@ class PaymentCategoryDetailsResponse {
   String? createdAt;
   String? updatedAt;
   String? total;
-  double? percentage;
+  String? percentage;
   List<Payment>? payments;
   Customer? customer;
 

@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/models/Customer.dart';
+import 'package:jova_app/screens/details_customer_screen.dart';
 import 'package:jova_app/screens/new_custumer_page.dart';
 import 'package:jova_app/widgets/Avatar.dart';
 
-class CustumersScreen extends StatefulWidget {
-  const CustumersScreen({super.key});
+class CustomersScreen extends StatefulWidget {
+  const CustomersScreen({super.key});
 
   @override
-  State<CustumersScreen> createState() => _CustumersScreenState();
+  State<CustomersScreen> createState() => _CustomersScreenState();
 }
 
-class _CustumersScreenState extends State<CustumersScreen> {
+class _CustomersScreenState extends State<CustomersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Clientes"),
+        title: const Text("Seleccionar Cliente"),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () async {
-              await Navigator.push(
+              Customer? customer = await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => NewClientPage()),
               );
-              setState(() {});
+
+              if (customer != null) {
+                Navigator.pop(context, customer);
+              }
             },
           ),
         ],
@@ -50,13 +54,25 @@ class _CustumersScreenState extends State<CustumersScreen> {
               return Column(
                 children: <Widget>[
                   ListTile(
-                    leading: Avatar(fullName: customer.name ?? ""),
-                    title: Text(customer.name!),
-                    subtitle: Text(customer.phoneNumber!),
-                    onTap: () {
-                      Navigator.pop(context, customer);
-                    },
-                  ),
+                      leading: Avatar(fullName: customer.name ?? ""),
+                      title: Text(customer.name!),
+                      subtitle: Text(customer.phoneNumber!),
+                      onTap: () {
+                        Navigator.pop(context, customer);
+                      },
+                      onLongPress: () {
+                        //Go to DetailsCustomerScreen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailsCustomerScreen(
+                              customer: customer,
+                            ),
+                          ),
+                        ).then((value) {
+                          setState(() {});
+                        });
+                      }),
                   if (index != snapshot.data!.length - 1) const Divider(),
                 ],
               );
