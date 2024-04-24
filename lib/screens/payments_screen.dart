@@ -5,6 +5,7 @@ import 'package:jova_app/models/PaymentsCategory.dart';
 import 'package:jova_app/screens/details_payments_category_screen.dart';
 import 'package:jova_app/screens/new_payments_category_page.dart';
 import 'package:jova_app/utiilts/formatCurrency.dart';
+import 'package:jova_app/widgets/InfoCard.dart';
 
 class PaymentsPage extends StatefulWidget {
   @override
@@ -33,16 +34,6 @@ class _PaymentsPageState extends State<PaymentsPage> {
           ),
         ],
       ),
-
-      /*   floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NewPaymentsCategoryPage()),
-          );
-        },
-        child: Icon(Icons.add),
-      ), */
       body: FutureBuilder<List<PaymentsCategory>>(
         future: Api.fetchPaymentsCategories(),
         builder: (context, snapshot) {
@@ -58,13 +49,11 @@ class _PaymentsPageState extends State<PaymentsPage> {
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2),
-              itemCount: snapshot.data?.length,
+            child: ListView.builder(
+              itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                PaymentsCategory payment = snapshot.data![index];
-                return _paymentCard(payment);
+                return _paymentCard(
+                    snapshot.data![index], index == snapshot.data!.length - 1);
               },
             ),
           );
@@ -73,9 +62,9 @@ class _PaymentsPageState extends State<PaymentsPage> {
     );
   }
 
-  Widget _paymentCard(PaymentsCategory payment) {
+  Widget _paymentCard(PaymentsCategory payment, bool isLast) {
     bool hasBudget = payment.budget > 0;
-    return GestureDetector(
+    var gestureDetector = GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -87,42 +76,82 @@ class _PaymentsPageState extends State<PaymentsPage> {
           setState(() {});
         });
       },
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  payment.name,
-                  style: const TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (hasBudget) ..._budgetElements(payment),
-              ]),
+      child: InfoCard(
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      payment.name,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (hasBudget) ..._budgetElements(payment),
+                    if (!hasBudget) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        "${formatCurrency(payment.total)} ",
+                        style: const TextStyle(
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ]
+                  ]),
+            ),
+            const SizedBox(
+              width: 50,
+              child: Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey,
+                size: 15.0,
+              ),
+            ),
+          ],
         ),
       ),
     );
+
+    if (!isLast) {
+      return Column(
+        children: [
+          gestureDetector,
+          const SizedBox(height: 10.0),
+        ],
+      );
+    }
+    return gestureDetector;
   }
 
   List<Widget> _budgetElements(PaymentsCategory payment) {
     return [
       const SizedBox(height: 20),
       Text(
-        formatCurrency(payment.budget),
+        "${formatCurrency(payment.total)} de ${formatCurrency(payment.budget)}",
         style: const TextStyle(
-          fontSize: 16.0,
+          fontSize: 14.0,
           fontWeight: FontWeight.w400,
         ),
       ),
       const SizedBox(height: 10),
-      LinearProgressIndicator(
-        value: payment.percentage / 100,
-        backgroundColor: Colors.grey[300],
-        valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+      Row(
+        children: [
+          Expanded(
+            child: LinearProgressIndicator(
+              value: payment.percentage / 100,
+              backgroundColor: Colors.grey[300],
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text("${payment.percentage.toStringAsFixed(0)}%"),
+        ],
       )
     ];
   }

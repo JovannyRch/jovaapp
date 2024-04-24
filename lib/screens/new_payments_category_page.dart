@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/models/Customer.dart';
+import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
 import 'package:jova_app/screens/customers_screen.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
 class NewPaymentsCategoryPage extends StatefulWidget {
+  PaymentCategoryDetailsResponse? category;
+
+  NewPaymentsCategoryPage({this.category});
+
   @override
   _NewPaymentsCategoryPageState createState() =>
       _NewPaymentsCategoryPageState();
@@ -17,6 +22,7 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
   TextEditingController _budgeController = TextEditingController();
   Dio _dio = Dio();
   Customer? customer;
+  bool isEditing = false;
 
   @override
   void dispose() {
@@ -32,12 +38,20 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
   }
 
   void _openCustomerScreen() async {
-    await Future.delayed(Duration.zero);
+    isEditing = widget.category != null;
 
-    customer = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CustomersScreen()),
-    );
+    if (!isEditing) {
+      await Future.delayed(Duration.zero);
+      customer = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CustomersScreen()),
+      );
+    } else {
+      customer = widget.category!.customer;
+      _nameController.text = widget.category!.name!;
+      _budgeController.text = widget.category!.budget.toString();
+    }
+
     setState(() {});
   }
 
@@ -54,9 +68,12 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
           body['budget'] = double.parse(_budgeController.text);
         }
 
-        var response =
-            await _dio.post("$API_URL/payments_categories", data: body);
-        print(response.data);
+        var response = isEditing
+            ? await _dio.put(
+                "${API_URL}/payments_categories/${widget.category!.id}",
+                data: body)
+            : await _dio.post("$API_URL/payments_categories", data: body);
+
         Navigator.pop(context);
       } catch (e) {
         // Mostrar un mensaje de error o dialog aquí
@@ -124,8 +141,10 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
               const SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
-                  onPressed: submitPayment,
-                  child: Text('Guardar'),
+                  onPressed: customer == null ? null : submitPayment,
+                  child: isEditing
+                      ? const Text('Actualizar')
+                      : const Text('Guardar'),
                 ),
               ),
             ],

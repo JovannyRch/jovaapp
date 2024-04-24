@@ -5,6 +5,7 @@ import 'package:jova_app/models/CategoryPayments.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
 import 'package:jova_app/screens/details_payment.dart';
 import 'package:jova_app/screens/new_payment_page.dart';
+import 'package:jova_app/screens/new_payments_category_page.dart';
 import 'package:jova_app/utiilts/formatCurrency.dart';
 import 'package:jova_app/utiilts/formatDate.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
@@ -109,12 +110,21 @@ class _DetailsPaymentsCategoryScreenState
                           style: TextStyle(color: Colors.red),
                         ),
                       ),
-                      /*   TextButton(
+                      TextButton(
                         onPressed: () {
-                          onDelete();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => NewPaymentsCategoryPage(
+                                category: response!,
+                              ),
+                            ),
+                          ).then((value) {
+                            refresh();
+                          });
                         },
                         child: const Text("Editar"),
-                      ), */
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -284,7 +294,15 @@ class _DetailsPaymentsCategoryScreenState
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: Text(payment.notes ?? ""),
+      subtitle: payment.notes != null
+          ? Text(
+              payment.notes!,
+              style: const TextStyle(
+                fontSize: 14.0,
+                color: kSubtitleColor,
+              ),
+            )
+          : null,
       trailing: Text(
         formatCurrency(double.parse(payment.amount.toString())),
         style: const TextStyle(
@@ -301,7 +319,11 @@ class _DetailsPaymentsCategoryScreenState
               category: response!,
             ),
           ),
-        );
+        ).then((value) {
+          if (value != null) {
+            refresh();
+          }
+        });
       },
     );
     return !isLast

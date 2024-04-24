@@ -3,13 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
 import 'package:jova_app/models/Customer.dart';
+import 'package:jova_app/screens/new_custumer_page.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
-class DetailsCustomerScreen extends StatelessWidget {
+class DetailsCustomerScreen extends StatefulWidget {
   final Customer customer;
-  Dio _dio = Dio();
+
   DetailsCustomerScreen({required this.customer});
+
+  @override
+  State<DetailsCustomerScreen> createState() => _DetailsCustomerScreenState();
+}
+
+class _DetailsCustomerScreenState extends State<DetailsCustomerScreen> {
+  Dio _dio = Dio();
+  Customer? customer;
+
+  initState() {
+    super.initState();
+    customer = widget.customer;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +40,9 @@ class DetailsCustomerScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Info(title: "Nombre", content: customer.name!),
+                  Info(title: "Nombre", content: customer!.name!),
                   const SizedBox(height: 15),
-                  Info(title: "Teléfono", content: customer.phoneNumber!),
+                  Info(title: "Teléfono", content: customer!.phoneNumber!),
                   const SizedBox(height: 15),
                 ],
               ),
@@ -48,8 +62,20 @@ class DetailsCustomerScreen extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  /*  onDelete(); */
+                onPressed: () async {
+                  Customer? updatedCustomer = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NewClientPage(
+                        customer: widget.customer,
+                      ),
+                    ),
+                  );
+                  if (updatedCustomer != null) {
+                    setState(() {
+                      customer = updatedCustomer;
+                    });
+                  }
                 },
                 child: const Text("Editar"),
               ),
@@ -90,7 +116,8 @@ class DetailsCustomerScreen extends StatelessWidget {
   }
 
   Future _deleteCustomer() async {
-    var response = await _dio.delete("$API_URL/customers/${customer.id}");
+    var response =
+        await _dio.delete("$API_URL/customers/${widget.customer.id}");
 
     return response;
   }

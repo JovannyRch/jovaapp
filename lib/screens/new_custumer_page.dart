@@ -4,6 +4,10 @@ import 'package:jova_app/api/api.dart';
 import 'package:jova_app/models/Customer.dart';
 
 class NewClientPage extends StatefulWidget {
+  Customer? customer;
+
+  NewClientPage({this.customer});
+
   @override
   _NewClientPageState createState() => _NewClientPageState();
 }
@@ -13,6 +17,16 @@ class _NewClientPageState extends State<NewClientPage> {
   TextEditingController _nameController = TextEditingController();
   TextEditingController _phoneNumberController = TextEditingController();
   Dio _dio = Dio();
+  bool isEditing = false;
+
+  initState() {
+    super.initState();
+    if (widget.customer != null) {
+      isEditing = true;
+      _nameController.text = widget.customer!.name!;
+      _phoneNumberController.text = widget.customer!.phoneNumber!;
+    }
+  }
 
   @override
   void dispose() {
@@ -24,16 +38,17 @@ class _NewClientPageState extends State<NewClientPage> {
   Future<void> submitClient() async {
     if (_formKey.currentState!.validate()) {
       try {
-        var response = await _dio.post("$API_URL/customers", data: {
+        var data = {
           'name': _nameController.text,
-          'phone_number': _phoneNumberController.text
-        });
-        print("Status code");
-        print(response.statusCode);
-        //Parse to customer
-        Customer customer = Customer.fromJson(response.data);
+          'phone_number': _phoneNumberController.text,
+        };
 
-        // ignore: use_build_context_synchronously
+        var response = isEditing
+            ? await _dio.put("${API_URL}/customers/${widget.customer!.id}",
+                data: data)
+            : await _dio.post("${API_URL}/customers", data: data);
+
+        Customer customer = Customer.fromJson(response.data);
         Navigator.pop(context, customer);
       } catch (e) {
         print("Error al enviar los datos: $e");
@@ -83,8 +98,8 @@ class _NewClientPageState extends State<NewClientPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: submitClient,
-                child: const Text(
-                  'Guardar',
+                child: Text(
+                  isEditing ? 'Editar Cliente' : 'Registrar Cliente',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                   ),
