@@ -4,9 +4,9 @@ import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
 import 'package:jova_app/models/CategoryPayments.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
-import 'package:jova_app/utiilts/formatCurrency.dart';
-import 'package:jova_app/utiilts/formatDate.dart';
-import 'package:jova_app/utiilts/sendWhatsAppMessage.dart';
+import 'package:jova_app/utils/formatCurrency.dart';
+import 'package:jova_app/utils/formatDate.dart';
+import 'package:jova_app/utils/sendWhatsAppMessage.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 

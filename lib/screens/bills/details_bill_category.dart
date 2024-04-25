@@ -7,8 +7,8 @@ import 'package:jova_app/models/Reponses/BillCategoryDetails.dart';
 import 'package:jova_app/screens/bills/details_bill_screen.dart';
 import 'package:jova_app/screens/bills/new_bill_category_screen.dart';
 import 'package:jova_app/screens/bills/new_bill_screen.dart';
-import 'package:jova_app/utiilts/formatCurrency.dart';
-import 'package:jova_app/utiilts/formatDate.dart';
+import 'package:jova_app/utils/formatCurrency.dart';
+import 'package:jova_app/utils/formatDate.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 

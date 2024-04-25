@@ -5,9 +5,9 @@ import 'package:jova_app/const/conts.dart';
 import 'package:jova_app/models/Collection/CollectionPayment.dart';
 import 'package:jova_app/models/CollectionCategory.dart';
 import 'package:jova_app/models/Customer.dart';
-import 'package:jova_app/utiilts/formatCurrency.dart';
-import 'package:jova_app/utiilts/formatDate.dart';
-import 'package:jova_app/utiilts/sendWhatsAppMessage.dart';
+import 'package:jova_app/utils/formatCurrency.dart';
+import 'package:jova_app/utils/formatDate.dart';
+import 'package:jova_app/utils/sendWhatsAppMessage.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 

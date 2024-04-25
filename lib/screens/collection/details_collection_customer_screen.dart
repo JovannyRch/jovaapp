@@ -7,8 +7,8 @@ import 'package:jova_app/models/CollectionCategory.dart';
 import 'package:jova_app/models/Customer.dart';
 import 'package:jova_app/screens/collection/details_collection_payment_screen.dart';
 import 'package:jova_app/screens/collection/new_collection_payment_screen.dart';
-import 'package:jova_app/utiilts/formatCurrency.dart';
-import 'package:jova_app/utiilts/formatDate.dart';
+import 'package:jova_app/utils/formatCurrency.dart';
+import 'package:jova_app/utils/formatDate.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
