@@ -1,32 +1,33 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
-import 'package:jova_app/models/CollectionCategory.dart';
-import 'package:jova_app/models/Customer.dart';
-import 'package:jova_app/models/Reponses/CollectionCategoryDetails.dart';
-import 'package:jova_app/screens/customers_screen.dart';
-import 'package:jova_app/screens/new_collection_category_screen.dart';
+import 'package:jova_app/models/CategoryPayments.dart';
+import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
+import 'package:jova_app/screens/payments/details_payment.dart';
+import 'package:jova_app/screens/payments/new_payment_page.dart';
+import 'package:jova_app/screens/payments/new_payments_category_page.dart';
+import 'package:jova_app/utiilts/formatCurrency.dart';
+import 'package:jova_app/utiilts/formatDate.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
-import 'package:toastification/toastification.dart';
 
-class DetailsCollectionCategory extends StatefulWidget {
+class DetailsPaymentsCategoryScreen extends StatefulWidget {
   final int categoryId;
 
-  DetailsCollectionCategory({required this.categoryId});
+  DetailsPaymentsCategoryScreen({required this.categoryId});
 
   @override
-  State<DetailsCollectionCategory> createState() =>
-      _DetailsCollectionCategoryState();
+  State<DetailsPaymentsCategoryScreen> createState() =>
+      _DetailsPaymentsCategoryScreenState();
 }
 
-class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
+class _DetailsPaymentsCategoryScreenState
+    extends State<DetailsPaymentsCategoryScreen> {
   Size? size;
   String title = "";
-  CollectionCategoryDetails? details;
+  PaymentCategoryDetailsResponse? response;
   bool _isLoading = true;
-  Dio _dio = Dio();
+  bool hasBudget = false;
 
   @override
   void initState() {
@@ -38,11 +39,14 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
     setState(() {
       _isLoading = true;
     });
-    final value = await Api.fetchCollectionCategoryDetails(widget.categoryId);
+    final value = await Api.fetchPaymentCategoryDetails(widget.categoryId);
 
     setState(() {
-      details = value;
-      title = details!.name!;
+      response = value;
+      title = response!.name!;
+      hasBudget = response!.budget != null &&
+          response!.budget!.isNotEmpty &&
+          double.parse(response!.budget!) > 0;
       _isLoading = false;
     });
   }
@@ -58,47 +62,27 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () async {
-              Navigator.push(
+              Payment? payment = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => CustomersScreen(
-                    multiSelect: true,
+                  builder: (context) => NewPaymentPage(
+                    categoryId: widget.categoryId,
                   ),
                 ),
-              ).then((value) {
-                if (value != null) {
-                  Customer customer = value;
+              );
 
-                  //Check if the customer is already in the list
-                  if (details!.customers!
-                      .map((e) => e.id)
-                      .contains(customer.id)) {
-                    toastification.show(
-                      context: context,
-                      title: const Text('El cliente ya está en la lista'),
-                      type: ToastificationType.warning,
-                      style: ToastificationStyle.flatColored,
-                      autoCloseDuration: const Duration(seconds: 5),
-                      alignment: Alignment.bottomCenter,
-                    );
-
-                    return;
-                  }
-
-                  _dio.post(
-                    "${API_URL}/collections_categories/${widget.categoryId}/addCustomer",
-                    data: {
-                      "customer_id": customer.id,
-                    },
-                  ).then((response) {
-                    if (response.statusCode == 201) {
-                      refresh();
-                    }
-                  }).catchError((e) {
-                    print("Error al agregar cliente: $e");
-                  });
-                }
-              });
+              if (payment != null) {
+                await refresh();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetailsPayment(
+                      payment: payment,
+                      category: response!,
+                    ),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -112,8 +96,7 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (details!.image != null || details!.description != null)
-                    _header(),
+                  _header(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -132,19 +115,12 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => NewCollectionCategoryScreen(
-                                category: CollectionCategory(
-                                  id: details!.id,
-                                  name: details!.name,
-                                  description: details!.description,
-                                  image: details!.image,
-                                ),
+                              builder: (context) => NewPaymentsCategoryPage(
+                                category: response!,
                               ),
                             ),
                           ).then((value) {
-                            if (value != null) {
-                              refresh();
-                            }
+                            refresh();
                           });
                         },
                         child: const Text("Editar"),
@@ -152,7 +128,7 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  _customers(),
+                  _payments(),
                 ],
               ),
             ),
@@ -163,30 +139,20 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0),
       child: InfoCard(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //Image
-            if (details!.image != null)
-              Image.network(
-                details!.image!,
-                width: 35.0,
-                height: 35.0,
-                fit: BoxFit.cover,
-              ),
-            if (details!.image == null)
-              const SizedBox(
-                width: 35.0,
-                height: 35.0,
-              ),
-            if (details!.description != null) ...[
-              const SizedBox(width: 10),
+            if (response!.customer != null) ...[
+              Info(title: "Responsable", content: response!.customer!.name!),
+              const SizedBox(height: 15),
+            ],
+            if (hasBudget) ..._budgetElements(),
+            if (!hasBudget)
               Info(
-                title: "Descripción",
-                content: details!.description!,
+                title: "Total pagado",
+                content: formatCurrency(double.parse(response!.total!)),
               ),
-            ]
           ],
         ),
       ),
@@ -210,7 +176,7 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
             ),
             TextButton(
               onPressed: () {
-                Api.deleteCollectionCategory(widget.categoryId).then((value) {
+                Api.deletePaymentCategory(widget.categoryId).then((value) {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 });
@@ -223,52 +189,43 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
     );
   }
 
-  void onRemoveCustomer(Customer customer) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Eliminar"),
-          content: const Text(
-              "¿Estás seguro de que deseas eliminar este cliente de la categoría?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Cancelar"),
+  List<Widget> _budgetElements() {
+    return [
+      Info(
+        title: "Presupuesto",
+        content: formatCurrency(double.parse(response!.budget!)),
+      ),
+      const SizedBox(height: 15),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Info(
+              title: "Pagado",
+              content: formatCurrency(double.parse(response!.total!))),
+          const SizedBox(height: 15),
+          Info(
+            title: "Restante",
+            content: formatCurrency(
+              double.parse(response!.budget!) - double.parse(response!.total!),
             ),
-            TextButton(
-              onPressed: () {
-                _dio
-                    .delete(
-                  "${API_URL}/collections_categories/${widget.categoryId}/removeCustomer/${customer.id}",
-                )
-                    .then((response) {
-                  if (response.statusCode == 200) {
-                    Navigator.pop(context);
-                    refresh();
-                  }
-                }).catchError((e) {
-                  toastification.show(
-                    context: context,
-                    title: const Text('Error al eliminar el cliente'),
-                    type: ToastificationType.error,
-                    style: ToastificationStyle.flatColored,
-                    autoCloseDuration: const Duration(seconds: 5),
-                    alignment: Alignment.bottomCenter,
-                  );
-                });
-              },
-              child: const Text("Eliminar"),
-            ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
+      const SizedBox(height: 15),
+      progressIndicator(),
+    ];
+  }
+
+  Widget progressIndicator() {
+    return LinearProgressIndicator(
+      value: double.parse(response!.percentage!.toString()) / 100,
+      backgroundColor: Colors.grey[300],
+      valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
     );
   }
 
-  Widget _customers() {
+  Widget _payments() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -283,7 +240,7 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
           ),
         ],
       ),
-      child: details!.customers!.isEmpty
+      child: response!.payments!.length == 0
           ? _noResults()
           : Container(
               decoration: BoxDecoration(
@@ -303,7 +260,7 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
                   //Total
                   ListTile(
                     title: Text(
-                      "${details!.customers!.length} ${details!.customers!.length == 1 ? 'cliente' : 'clientes'}",
+                      "${response!.payments!.length} ${response!.payments!.length == 1 ? 'pago' : 'pagos'}",
                       style: const TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
@@ -314,12 +271,12 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: details!.customers!.length,
+                    itemCount: response!.payments!.length,
                     itemBuilder: (context, index) {
-                      Customer item = details!.customers![index];
-                      return _item(
-                        item,
-                        index == details!.customers!.length - 1,
+                      Payment payment = response!.payments![index];
+                      return _paymentCard(
+                        payment,
+                        index == response!.payments!.length - 1,
                       );
                     },
                   ),
@@ -329,41 +286,47 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
     );
   }
 
-  Widget _item(Customer item, bool isLast) {
+  Widget _paymentCard(Payment payment, bool isLast) {
     var listTile = ListTile(
       title: Text(
-        item.name!,
+        formatDate(payment.date!),
         style: const TextStyle(
           fontSize: 14.0,
           color: kSubtitleColor,
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: item.phoneNumber != null
+      subtitle: payment.notes != null
           ? Text(
-              item.phoneNumber!,
+              payment.notes!,
               style: const TextStyle(
                 fontSize: 14.0,
                 color: kSubtitleColor,
               ),
             )
           : null,
+      trailing: Text(
+        formatCurrency(double.parse(payment.amount.toString())),
+        style: const TextStyle(
+          fontSize: 16.0,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
       onTap: () {
-        /* Navigator.push(
+        Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DetailsBillScreen(
-              item: bill,
-              categoryDetails: details!,
+            builder: (context) => DetailsPayment(
+              payment: payment,
+              category: response!,
             ),
           ),
         ).then((value) {
           if (value != null) {
             refresh();
           }
-        }); */
+        });
       },
-      onLongPress: () => onRemoveCustomer(item),
     );
     return !isLast
         ? Column(
@@ -389,7 +352,7 @@ class _DetailsCollectionCategoryState extends State<DetailsCollectionCategory> {
           ),
           SizedBox(height: 10),
           Text(
-            "No hay clientes registrados",
+            "No hay pagos registrados",
             style: TextStyle(
               color: kSubtitleColor,
               fontWeight: FontWeight.w500,

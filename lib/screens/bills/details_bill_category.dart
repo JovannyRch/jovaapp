@@ -1,33 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
-import 'package:jova_app/models/CategoryPayments.dart';
-import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
-import 'package:jova_app/screens/details_payment.dart';
-import 'package:jova_app/screens/new_payment_page.dart';
-import 'package:jova_app/screens/new_payments_category_page.dart';
+import 'package:jova_app/models/Bill.dart';
+import 'package:jova_app/models/BillCategory.dart';
+import 'package:jova_app/models/Reponses/BillCategoryDetails.dart';
+import 'package:jova_app/screens/bills/details_bill_screen.dart';
+import 'package:jova_app/screens/bills/new_bill_category_screen.dart';
+import 'package:jova_app/screens/bills/new_bill_screen.dart';
 import 'package:jova_app/utiilts/formatCurrency.dart';
 import 'package:jova_app/utiilts/formatDate.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
-class DetailsPaymentsCategoryScreen extends StatefulWidget {
+class DetailsBillCategory extends StatefulWidget {
   final int categoryId;
 
-  DetailsPaymentsCategoryScreen({required this.categoryId});
+  DetailsBillCategory({required this.categoryId});
 
   @override
-  State<DetailsPaymentsCategoryScreen> createState() =>
-      _DetailsPaymentsCategoryScreenState();
+  State<DetailsBillCategory> createState() => _DetailsBillCategoryState();
 }
 
-class _DetailsPaymentsCategoryScreenState
-    extends State<DetailsPaymentsCategoryScreen> {
+class _DetailsBillCategoryState extends State<DetailsBillCategory> {
   Size? size;
   String title = "";
-  PaymentCategoryDetailsResponse? response;
+  BillCategoryDetails? details;
   bool _isLoading = true;
-  bool hasBudget = false;
 
   @override
   void initState() {
@@ -39,14 +37,11 @@ class _DetailsPaymentsCategoryScreenState
     setState(() {
       _isLoading = true;
     });
-    final value = await Api.fetchPaymentCategoryDetails(widget.categoryId);
+    final value = await Api.fetchBillCategoryDetails(widget.categoryId);
 
     setState(() {
-      response = value;
-      title = response!.name!;
-      hasBudget = response!.budget != null &&
-          response!.budget!.isNotEmpty &&
-          double.parse(response!.budget!) > 0;
+      details = value;
+      title = details!.name!;
       _isLoading = false;
     });
   }
@@ -62,26 +57,25 @@ class _DetailsPaymentsCategoryScreenState
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () async {
-              Payment? payment = await Navigator.push(
+              Bill? item = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => NewPaymentPage(
+                  builder: (context) => NewBillScreen(
                     categoryId: widget.categoryId,
                   ),
                 ),
               );
 
-              if (payment != null) {
+              if (item != null) {
                 await refresh();
-                Navigator.push(
+                /* Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => DetailsPayment(
                       payment: payment,
-                      category: response!,
                     ),
                   ),
-                );
+                ); */
               }
             },
           ),
@@ -115,8 +109,11 @@ class _DetailsPaymentsCategoryScreenState
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => NewPaymentsCategoryPage(
-                                category: response!,
+                              builder: (context) => NewBillCategoryScreen(
+                                category: BillCategory(
+                                  id: details!.id,
+                                  name: details!.name,
+                                ),
                               ),
                             ),
                           ).then((value) {
@@ -143,16 +140,10 @@ class _DetailsPaymentsCategoryScreenState
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (response!.customer != null) ...[
-              Info(title: "Responsable", content: response!.customer!.name!),
-              const SizedBox(height: 15),
-            ],
-            if (hasBudget) ..._budgetElements(),
-            if (!hasBudget)
-              Info(
-                title: "Total pagado",
-                content: formatCurrency(double.parse(response!.total!)),
-              ),
+            Info(
+              title: "Total gastado",
+              content: formatCurrency(double.parse(details!.total!)),
+            ),
           ],
         ),
       ),
@@ -176,7 +167,7 @@ class _DetailsPaymentsCategoryScreenState
             ),
             TextButton(
               onPressed: () {
-                Api.deletePaymentCategory(widget.categoryId).then((value) {
+                Api.deleteBillCategory(widget.categoryId).then((value) {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 });
@@ -186,42 +177,6 @@ class _DetailsPaymentsCategoryScreenState
           ],
         );
       },
-    );
-  }
-
-  List<Widget> _budgetElements() {
-    return [
-      Info(
-        title: "Presupuesto",
-        content: formatCurrency(double.parse(response!.budget!)),
-      ),
-      const SizedBox(height: 15),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Info(
-              title: "Pagado",
-              content: formatCurrency(double.parse(response!.total!))),
-          const SizedBox(height: 15),
-          Info(
-            title: "Restante",
-            content: formatCurrency(
-              double.parse(response!.budget!) - double.parse(response!.total!),
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 15),
-      progressIndicator(),
-    ];
-  }
-
-  Widget progressIndicator() {
-    return LinearProgressIndicator(
-      value: double.parse(response!.percentage!.toString()) / 100,
-      backgroundColor: Colors.grey[300],
-      valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
     );
   }
 
@@ -240,7 +195,7 @@ class _DetailsPaymentsCategoryScreenState
           ),
         ],
       ),
-      child: response!.payments!.length == 0
+      child: details!.bills!.isEmpty
           ? _noResults()
           : Container(
               decoration: BoxDecoration(
@@ -260,7 +215,7 @@ class _DetailsPaymentsCategoryScreenState
                   //Total
                   ListTile(
                     title: Text(
-                      "${response!.payments!.length} ${response!.payments!.length == 1 ? 'pago' : 'pagos'}",
+                      "${details!.bills!.length} ${details!.bills!.length == 1 ? 'gasto' : 'gastos'}",
                       style: const TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
@@ -271,12 +226,12 @@ class _DetailsPaymentsCategoryScreenState
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: response!.payments!.length,
+                    itemCount: details!.bills!.length,
                     itemBuilder: (context, index) {
-                      Payment payment = response!.payments![index];
-                      return _paymentCard(
-                        payment,
-                        index == response!.payments!.length - 1,
+                      Bill bill = details!.bills![index];
+                      return _item(
+                        bill,
+                        index == details!.bills!.length - 1,
                       );
                     },
                   ),
@@ -286,19 +241,19 @@ class _DetailsPaymentsCategoryScreenState
     );
   }
 
-  Widget _paymentCard(Payment payment, bool isLast) {
+  Widget _item(Bill bill, bool isLast) {
     var listTile = ListTile(
       title: Text(
-        formatDate(payment.date!),
+        formatDate(bill.date!),
         style: const TextStyle(
           fontSize: 14.0,
           color: kSubtitleColor,
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: payment.notes != null
+      subtitle: bill.notes != null
           ? Text(
-              payment.notes!,
+              bill.notes!,
               style: const TextStyle(
                 fontSize: 14.0,
                 color: kSubtitleColor,
@@ -306,7 +261,7 @@ class _DetailsPaymentsCategoryScreenState
             )
           : null,
       trailing: Text(
-        formatCurrency(double.parse(payment.amount.toString())),
+        formatCurrency(double.parse(bill.amount.toString())),
         style: const TextStyle(
           fontSize: 16.0,
           fontWeight: FontWeight.w500,
@@ -316,9 +271,9 @@ class _DetailsPaymentsCategoryScreenState
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DetailsPayment(
-              payment: payment,
-              category: response!,
+            builder: (context) => DetailsBillScreen(
+              item: bill,
+              categoryDetails: details!,
             ),
           ),
         ).then((value) {
@@ -352,7 +307,7 @@ class _DetailsPaymentsCategoryScreenState
           ),
           SizedBox(height: 10),
           Text(
-            "No hay pagos registrados",
+            "No hay gastos registrados",
             style: TextStyle(
               color: kSubtitleColor,
               fontWeight: FontWeight.w500,

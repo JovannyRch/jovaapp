@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
 import 'package:jova_app/models/PaymentsCategory.dart';
-import 'package:jova_app/screens/details_payments_category_screen.dart';
-import 'package:jova_app/screens/new_payments_category_page.dart';
+import 'package:jova_app/screens/payments/details_payments_category_screen.dart';
+import 'package:jova_app/screens/payments/new_payments_category_page.dart';
 import 'package:jova_app/utiilts/formatCurrency.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 

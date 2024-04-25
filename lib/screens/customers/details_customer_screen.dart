@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
 import 'package:jova_app/models/Customer.dart';
-import 'package:jova_app/screens/new_custumer_page.dart';
+import 'package:jova_app/screens/customers/new_custumer_page.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 

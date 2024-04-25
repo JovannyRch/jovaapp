@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/models/Customer.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
-import 'package:jova_app/screens/customers_screen.dart';
+import 'package:jova_app/screens/customers/customers_screen.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
 class NewPaymentsCategoryPage extends StatefulWidget {

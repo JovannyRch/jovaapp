@@ -142,4 +142,19 @@ class Api {
       throw error;
     }
   }
+
+  static Future<List<T>> getList<T>(
+      String url, T Function(Map<String, dynamic>) fromJson) async {
+    try {
+      Response response = await dio.get('$API_URL/$url');
+      print(response);
+      List<T> items = (response.data as List).map((data) {
+        return fromJson(data);
+      }).toList();
+      return items;
+    } catch (error) {
+      print("Error al obtener datos: $error");
+      throw error;
+    }
+  }
 }

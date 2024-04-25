@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
-import 'package:jova_app/models/CollectionCategory.dart';
-import 'package:jova_app/screens/details_collection_category.dart';
-import 'package:jova_app/screens/new_collection_category_screen.dart';
+import 'package:jova_app/models/BillCategory.dart';
+import 'package:jova_app/screens/bills/details_bill_category.dart';
+import 'package:jova_app/screens/bills/new_bill_category_screen.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 
-class CollectionCategoriesScreen extends StatefulWidget {
+class BillScreen extends StatefulWidget {
   @override
-  _CollectionCategoriesScreenState createState() =>
-      _CollectionCategoriesScreenState();
+  _BillScreenState createState() => _BillScreenState();
 }
 
-class _CollectionCategoriesScreenState
-    extends State<CollectionCategoriesScreen> {
+class _BillScreenState extends State<BillScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: AppBar(
-        title: const Text("Cobros"),
+        title: Text("Gastos"),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -27,7 +25,7 @@ class _CollectionCategoriesScreenState
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => NewCollectionCategoryScreen()),
+                    builder: (context) => NewBillCategoryScreen()),
               ).then((value) {
                 if (value != null) setState(() {});
               });
@@ -35,8 +33,8 @@ class _CollectionCategoriesScreenState
           ),
         ],
       ),
-      body: FutureBuilder<List<CollectionCategory>>(
-        future: Api.fetchCollectionCategories(),
+      body: FutureBuilder<List<BillCategory>>(
+        future: Api.fetchBillCategories(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -53,7 +51,7 @@ class _CollectionCategoriesScreenState
             child: ListView.builder(
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                return _itemCard(
+                return _paymentCard(
                     snapshot.data![index], index == snapshot.data!.length - 1);
               },
             ),
@@ -63,35 +61,21 @@ class _CollectionCategoriesScreenState
     );
   }
 
-  Widget _itemCard(CollectionCategory category, bool isLast) {
+  Widget _paymentCard(BillCategory category, bool isLast) {
     var gestureDetector = GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                DetailsCollectionCategory(categoryId: category.id!),
+            builder: (context) => DetailsBillCategory(categoryId: category.id!),
           ),
         ).then((value) {
-          setState(() {});
+          if (value != null) setState(() {});
         });
       },
       child: InfoCard(
         child: Row(
           children: [
-            if (category.image != null)
-              Image.network(
-                category.image!,
-                width: 35.0,
-                height: 35.0,
-                fit: BoxFit.cover,
-              ),
-            if (category.image == null)
-              const SizedBox(
-                width: 35.0,
-                height: 35.0,
-              ),
-            const SizedBox(width: 10),
             Expanded(
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
