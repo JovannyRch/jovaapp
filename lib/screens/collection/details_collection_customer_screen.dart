@@ -113,9 +113,9 @@ class _DetailsCollectionCustomerScreenState
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0),
       child: InfoCard(
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -129,11 +129,7 @@ class _DetailsCollectionCustomerScreenState
                     height: 35.0,
                     fit: BoxFit.cover,
                   ),
-                if (widget.category.image == null)
-                  const SizedBox(
-                    width: 35.0,
-                    height: 35.0,
-                  ),
+
                 if (widget.category.name != null) ...[
                   const SizedBox(width: 10),
                   Info(

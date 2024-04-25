@@ -7,9 +7,9 @@ import 'package:jova_app/models/Reponses/BillCategoryDetails.dart';
 import 'package:jova_app/models/Reponses/CollectionCategoryDetails.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
 
-//const String API_URL = 'https://dewvisi.nyc.dom.my.id/api';
+const String API_URL = 'https://dewvisi.nyc.dom.my.id/api';
 //const String API_URL = 'https://duchazu.nyc.dom.my.id/api';
-const String API_URL = 'https://8bf2-138-84-54-121.ngrok-free.app/api';
+//const String API_URL = 'https://8bf2-138-84-54-121.ngrok-free.app/api';
 
 class Api {
   static final dio = Dio();

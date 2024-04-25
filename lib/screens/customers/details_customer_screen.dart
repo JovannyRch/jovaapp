@@ -67,7 +67,7 @@ class _DetailsCustomerScreenState extends State<DetailsCustomerScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => NewClientPage(
-                        customer: widget.customer,
+                        customer: customer,
                       ),
                     ),
                   );

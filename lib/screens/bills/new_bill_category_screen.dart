@@ -46,7 +46,7 @@ class _NewBillCategoryScreenState extends State<NewBillCategoryScreen> {
                 data: body)
             : await _dio.post("$API_URL/bill_categories", data: body);
 
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } catch (e) {
         print("Error al enviar los datos: $e");
       }

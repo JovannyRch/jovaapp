@@ -49,7 +49,7 @@ class _NewClientPageState extends State<NewClientPage> {
                 data: data)
             : await _dio.post("${API_URL}/customers", data: data);
 
-        if (response.statusCode != 201) {
+        if (response.statusCode != 201 && response.statusCode != 200) {
           toastification.show(
             context: context,
             title: const Text('Error al registrar el cliente'),
