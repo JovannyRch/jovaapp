@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/models/Customer.dart';
+import 'package:toastification/toastification.dart';
 
 class NewClientPage extends StatefulWidget {
   Customer? customer;
@@ -47,6 +48,16 @@ class _NewClientPageState extends State<NewClientPage> {
             ? await _dio.put("${API_URL}/customers/${widget.customer!.id}",
                 data: data)
             : await _dio.post("${API_URL}/customers", data: data);
+
+        if (response.statusCode != 201) {
+          toastification.show(
+            context: context,
+            title: const Text('Error al registrar el cliente'),
+            type: ToastificationType.error,
+            style: ToastificationStyle.flatColored,
+          );
+          return;
+        }
 
         Customer customer = Customer.fromJson(response.data);
         Navigator.pop(context, customer);

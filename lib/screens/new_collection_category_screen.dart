@@ -1,26 +1,32 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
-import 'package:jova_app/models/BillCategory.dart';
+import 'package:jova_app/models/CollectionCategory.dart';
 
-class NewBillCategoryScreen extends StatefulWidget {
-  BillCategory? category;
+class NewCollectionCategoryScreen extends StatefulWidget {
+  CollectionCategory? category;
 
-  NewBillCategoryScreen({this.category});
+  NewCollectionCategoryScreen({this.category});
 
   @override
-  _NewBillCategoryScreenState createState() => _NewBillCategoryScreenState();
+  _NewCollectionCategoryScreenState createState() =>
+      _NewCollectionCategoryScreenState();
 }
 
-class _NewBillCategoryScreenState extends State<NewBillCategoryScreen> {
+class _NewCollectionCategoryScreenState
+    extends State<NewCollectionCategoryScreen> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController _nameController = TextEditingController();
+  TextEditingController _descriptionController = TextEditingController();
+  TextEditingController _imageController = TextEditingController();
   Dio _dio = Dio();
   bool isEditing = false;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _descriptionController.dispose();
+    _imageController.dispose();
     super.dispose();
   }
 
@@ -30,6 +36,8 @@ class _NewBillCategoryScreenState extends State<NewBillCategoryScreen> {
     setState(() {
       isEditing = widget.category != null;
       _nameController.text = widget.category?.name ?? "";
+      _descriptionController.text = widget.category?.description ?? "";
+      _imageController.text = widget.category?.image ?? "";
     });
   }
 
@@ -40,13 +48,21 @@ class _NewBillCategoryScreenState extends State<NewBillCategoryScreen> {
           'name': _nameController.text,
         };
 
+        if (_descriptionController.text.isNotEmpty) {
+          body['description'] = _descriptionController.text;
+        }
+
+        if (_imageController.text.isNotEmpty) {
+          body['image'] = _imageController.text;
+        }
+
         isEditing
             ? await _dio.put(
-                "${API_URL}/bill_categories/${widget.category!.id}",
+                "${API_URL}/collections_categories/${widget.category!.id}",
                 data: body)
-            : await _dio.post("$API_URL/bill_categories", data: body);
+            : await _dio.post("$API_URL/collections_categories", data: body);
 
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } catch (e) {
         print("Error al enviar los datos: $e");
       }
@@ -56,7 +72,7 @@ class _NewBillCategoryScreenState extends State<NewBillCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Nueva Categoría de Pago")),
+      appBar: AppBar(title: Text("Nueva Categoría de Cobro")),
       body: Form(
         key: _formKey,
         child: Padding(
@@ -74,6 +90,16 @@ class _NewBillCategoryScreenState extends State<NewBillCategoryScreen> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 10.0),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(labelText: 'Descripción'),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _imageController,
+                decoration: InputDecoration(labelText: 'Imagen'),
               ),
               const SizedBox(height: 20),
               Center(

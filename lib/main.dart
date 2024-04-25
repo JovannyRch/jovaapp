@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jova_app/screens/bills_screen.dart';
+import 'package:jova_app/screens/collection_categories_screen.dart';
 import 'package:jova_app/screens/payments_screen.dart';
 
 void main() => runApp(const MyApp());
@@ -26,7 +27,7 @@ class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
   final List<Widget> _children = [
     PaymentsPage(),
-    CollectionsPage(),
+    CollectionCategoriesScreen(),
     BillScreen(),
   ];
 
@@ -63,13 +64,6 @@ class _MainPageState extends State<MainPage> {
         ],
       ),
     );
-  }
-}
-
-class CollectionsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Cobros'));
   }
 }
 

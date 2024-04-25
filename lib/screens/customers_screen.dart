@@ -6,7 +6,9 @@ import 'package:jova_app/screens/new_custumer_page.dart';
 import 'package:jova_app/widgets/Avatar.dart';
 
 class CustomersScreen extends StatefulWidget {
-  const CustomersScreen({super.key});
+  final bool multiSelect;
+
+  CustomersScreen({this.multiSelect = false});
 
   @override
   State<CustomersScreen> createState() => _CustomersScreenState();
@@ -22,13 +24,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () async {
-              Customer? customer = await Navigator.push(
+              var response = await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => NewClientPage()),
               );
-
-              if (customer != null) {
-                Navigator.pop(context, customer);
+              if (response != null) {
+                setState(() {});
               }
             },
           ),

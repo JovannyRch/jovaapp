@@ -44,7 +44,7 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
       await Future.delayed(Duration.zero);
       customer = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const CustomersScreen()),
+        MaterialPageRoute(builder: (context) => CustomersScreen()),
       );
     } else {
       customer = widget.category!.customer;
@@ -74,7 +74,7 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
                 data: body)
             : await _dio.post("$API_URL/payments_categories", data: body);
 
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } catch (e) {
         // Mostrar un mensaje de error o dialog aquí
         print("Error al enviar los datos: $e");
@@ -85,7 +85,7 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Nueva Categoría de Pago")),
+      appBar: AppBar(title: const Text("Nueva Categoría de Pago")),
       body: Form(
         key: _formKey,
         child: Padding(
@@ -107,7 +107,7 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
                         customer = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const CustomersScreen()),
+                              builder: (context) => CustomersScreen()),
                         );
                         setState(() {});
                       },

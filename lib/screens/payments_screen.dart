@@ -28,7 +28,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 MaterialPageRoute(
                     builder: (context) => NewPaymentsCategoryPage()),
               ).then((value) {
-                setState(() {});
+                if (value != null) setState(() {});
               });
             },
           ),

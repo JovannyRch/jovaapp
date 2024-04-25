@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:jova_app/models/BillCategory.dart';
+import 'package:jova_app/models/CollectionCategory.dart';
 import 'package:jova_app/models/Customer.dart';
 import 'package:jova_app/models/PaymentsCategory.dart';
 import 'package:jova_app/models/Reponses/BillCategoryDetails.dart';
+import 'package:jova_app/models/Reponses/CollectionCategoryDetails.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
 
 //const String API_URL = 'https://dewvisi.nyc.dom.my.id/api';
@@ -74,6 +76,20 @@ class Api {
     }
   }
 
+  static Future<CollectionCategoryDetails> fetchCollectionCategoryDetails(
+      int categoryId) async {
+    try {
+      Response response =
+          await dio.get('$API_URL/collections_categories/$categoryId/details');
+      CollectionCategoryDetails details =
+          CollectionCategoryDetails.fromJson(response.data);
+      return details;
+    } catch (error) {
+      print("Error al obtener datos: $error");
+      throw error;
+    }
+  }
+
   static Future deletePaymentCategory(int categoryId) async {
     try {
       await dio.delete('$API_URL/payments_categories/$categoryId');
@@ -92,6 +108,15 @@ class Api {
     }
   }
 
+  static Future deleteCollectionCategory(int categoryId) async {
+    try {
+      await dio.delete('$API_URL/collections_categories/$categoryId');
+    } catch (error) {
+      print("Error al eliminar la categoría de pago: $error");
+      throw error;
+    }
+  }
+
   static Future<List<BillCategory>> fetchBillCategories() async {
     try {
       Response response = await dio.get('$API_URL/bill_categories');
@@ -99,6 +124,19 @@ class Api {
         return BillCategory.fromJson(data);
       }).toList();
       return billCategories;
+    } catch (error) {
+      print("Error al obtener datos: $error");
+      throw error;
+    }
+  }
+
+  static Future<List<CollectionCategory>> fetchCollectionCategories() async {
+    try {
+      Response response = await dio.get('$API_URL/collections_categories');
+      List<CollectionCategory> categories = (response.data as List).map((data) {
+        return CollectionCategory.fromJson(data);
+      }).toList();
+      return categories;
     } catch (error) {
       print("Error al obtener datos: $error");
       throw error;
