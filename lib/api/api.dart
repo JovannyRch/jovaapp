@@ -1,10 +1,13 @@
 import 'package:dio/dio.dart';
+import 'package:jova_app/models/BillCategory.dart';
 import 'package:jova_app/models/Customer.dart';
 import 'package:jova_app/models/PaymentsCategory.dart';
+import 'package:jova_app/models/Reponses/BillCategoryDetails.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
 
 //const String API_URL = 'https://dewvisi.nyc.dom.my.id/api';
-const String API_URL = 'https://8ca2-138-84-56-92.ngrok-free.app/api';
+//const String API_URL = 'https://duchazu.nyc.dom.my.id/api';
+const String API_URL = 'https://8bf2-138-84-54-121.ngrok-free.app/api';
 
 class Api {
   static final dio = Dio();
@@ -58,11 +61,46 @@ class Api {
     }
   }
 
+  static Future<BillCategoryDetails> fetchBillCategoryDetails(
+      int categoryId) async {
+    try {
+      Response response =
+          await dio.get('$API_URL/bill_categories/$categoryId/details');
+      BillCategoryDetails details = BillCategoryDetails.fromJson(response.data);
+      return details;
+    } catch (error) {
+      print("Error al obtener datos: $error");
+      throw error;
+    }
+  }
+
   static Future deletePaymentCategory(int categoryId) async {
     try {
       await dio.delete('$API_URL/payments_categories/$categoryId');
     } catch (error) {
       print("Error al eliminar la categoría de pago: $error");
+      throw error;
+    }
+  }
+
+  static Future deleteBillCategory(int categoryId) async {
+    try {
+      await dio.delete('$API_URL/bill_categories/$categoryId');
+    } catch (error) {
+      print("Error al eliminar la categoría de pago: $error");
+      throw error;
+    }
+  }
+
+  static Future<List<BillCategory>> fetchBillCategories() async {
+    try {
+      Response response = await dio.get('$API_URL/bill_categories');
+      List<BillCategory> billCategories = (response.data as List).map((data) {
+        return BillCategory.fromJson(data);
+      }).toList();
+      return billCategories;
+    } catch (error) {
+      print("Error al obtener datos: $error");
       throw error;
     }
   }

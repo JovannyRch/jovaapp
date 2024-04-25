@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jova_app/screens/bills_screen.dart';
 import 'package:jova_app/screens/payments_screen.dart';
 
 void main() => runApp(const MyApp());
@@ -26,8 +27,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _children = [
     PaymentsPage(),
     CollectionsPage(),
-    ExpensesPage(),
-    ClientsPage(),
+    BillScreen(),
   ];
 
   void onTabTapped(int index) {
@@ -70,13 +70,6 @@ class CollectionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Cobros'));
-  }
-}
-
-class ExpensesPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Gastos'));
   }
 }
 

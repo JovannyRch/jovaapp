@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
-import 'package:jova_app/models/PaymentsCategory.dart';
-import 'package:jova_app/screens/details_payments_category_screen.dart';
-import 'package:jova_app/screens/new_payments_category_page.dart';
-import 'package:jova_app/utiilts/formatCurrency.dart';
+import 'package:jova_app/models/BillCategory.dart';
+import 'package:jova_app/screens/details_bill_category.dart';
+import 'package:jova_app/screens/new_bill_category_screen.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 
-class PaymentsPage extends StatefulWidget {
+class BillScreen extends StatefulWidget {
   @override
-  _PaymentsPageState createState() => _PaymentsPageState();
+  _BillScreenState createState() => _BillScreenState();
 }
 
-class _PaymentsPageState extends State<PaymentsPage> {
+class _BillScreenState extends State<BillScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: AppBar(
-        title: Text("Pagos"),
+        title: Text("Gastos"),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -26,7 +25,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => NewPaymentsCategoryPage()),
+                    builder: (context) => NewBillCategoryScreen()),
               ).then((value) {
                 setState(() {});
               });
@@ -34,8 +33,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
           ),
         ],
       ),
-      body: FutureBuilder<List<PaymentsCategory>>(
-        future: Api.fetchPaymentsCategories(),
+      body: FutureBuilder<List<BillCategory>>(
+        future: Api.fetchBillCategories(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -62,15 +61,13 @@ class _PaymentsPageState extends State<PaymentsPage> {
     );
   }
 
-  Widget _paymentCard(PaymentsCategory payment, bool isLast) {
-    bool hasBudget = payment.budget > 0;
+  Widget _paymentCard(BillCategory category, bool isLast) {
     var gestureDetector = GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                DetailsPaymentsCategoryScreen(categoryId: payment.id),
+            builder: (context) => DetailsBillCategory(categoryId: category.id!),
           ),
         ).then((value) {
           setState(() {});
@@ -85,24 +82,13 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      payment.name,
+                      category.name!,
                       style: const TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    if (hasBudget) ..._budgetElements(payment),
-                    if (!hasBudget) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        "${formatCurrency(payment.total)} ",
-                        style: const TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ]
                   ]),
             ),
             const SizedBox(
@@ -127,33 +113,6 @@ class _PaymentsPageState extends State<PaymentsPage> {
       );
     }
     return gestureDetector;
-  }
-
-  List<Widget> _budgetElements(PaymentsCategory payment) {
-    return [
-      const SizedBox(height: 20),
-      Text(
-        "${formatCurrency(payment.total)} de ${formatCurrency(payment.budget)}",
-        style: const TextStyle(
-          fontSize: 14.0,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-      const SizedBox(height: 10),
-      Row(
-        children: [
-          Expanded(
-            child: LinearProgressIndicator(
-              value: payment.percentage / 100,
-              backgroundColor: Colors.grey[300],
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text("${payment.percentage.toStringAsFixed(0)}%"),
-        ],
-      )
-    ];
   }
 
   //No results found
