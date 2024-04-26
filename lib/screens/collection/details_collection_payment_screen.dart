@@ -29,6 +29,14 @@ class DetailsCollectionPayment extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Detalles del Pago"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              onDelete(context);
+            },
+            icon: const Icon(Icons.delete),
+          ),
+        ],
       ),
       backgroundColor: kBackgroundColor,
       body: Padding(
@@ -76,15 +84,8 @@ class DetailsCollectionPayment extends StatelessWidget {
               onPressed: () {
                 onSendMessage();
               },
-              child: const Text("Enviar por WhatsApp"),
+              child: const Text("Compartir por WhatsApp"),
             ),
-            TextButton(
-              onPressed: () {
-                onDelete(context);
-              },
-              child:
-                  const Text("Eliminar", style: TextStyle(color: Colors.red)),
-            )
           ],
         ),
       ),

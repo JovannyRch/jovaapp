@@ -5,6 +5,7 @@ import 'package:jova_app/models/Customer.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
 import 'package:jova_app/screens/customers/customers_screen.dart';
 import 'package:jova_app/widgets/InfoText.dart';
+import 'package:toastification/toastification.dart';
 
 class NewPaymentsCategoryPage extends StatefulWidget {
   PaymentCategoryDetailsResponse? category;
@@ -47,6 +48,7 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
         MaterialPageRoute(builder: (context) => CustomersScreen()),
       );
     } else {
+      print("${widget.category!.customer!.name}");
       customer = widget.category!.customer;
       _nameController.text = widget.category!.name!;
       _budgeController.text = widget.category!.budget.toString();
@@ -73,8 +75,17 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
                 "${API_URL}/payments_categories/${widget.category!.id}",
                 data: body)
             : await _dio.post("$API_URL/payments_categories", data: body);
-
-        Navigator.pop(context, true);
+        print(response);
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          Navigator.pop(context, true);
+        } else {
+          toastification.show(
+            context: context,
+            title: Text("Error al guardar los datos"),
+            type: ToastificationType.error,
+            style: ToastificationStyle.flatColored,
+          );
+        }
       } catch (e) {
         // Mostrar un mensaje de error o dialog aquí
         print("Error al enviar los datos: $e");
@@ -85,7 +96,8 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Nueva Categoría de Pago")),
+      appBar: AppBar(
+          title: Text(isEditing ? 'Editar Categoría' : 'Nueva Categoría')),
       body: Form(
         key: _formKey,
         child: Padding(
@@ -109,7 +121,9 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
                           MaterialPageRoute(
                               builder: (context) => CustomersScreen()),
                         );
-                        setState(() {});
+                        if (customer != null) {
+                          setState(() {});
+                        }
                       },
                       child: const Text(
                         'Cambiar Cliente',
@@ -120,6 +134,26 @@ class _NewPaymentsCategoryPageState extends State<NewPaymentsCategoryPage> {
                       ),
                     ),
                   ],
+                ),
+              if (customer == null)
+                TextButton(
+                  onPressed: () async {
+                    customer = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CustomersScreen()),
+                    );
+                    if (customer != null) {
+                      setState(() {});
+                    }
+                  },
+                  child: const Text(
+                    'Selecionar Cliente',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 11.0,
+                    ),
+                  ),
                 ),
               const SizedBox(height: 10.0),
               TextFormField(

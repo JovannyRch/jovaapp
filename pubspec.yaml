@@ -40,6 +40,8 @@ dependencies:
   whatsapp_unilink: ^2.1.0
   url_launcher: ^6.2.4
   toastification: ^1.2.1
+  easy_pdf_viewer: ^1.0.8
+  share_extend: ^2.0.0
 
 dev_dependencies:
   flutter_test:

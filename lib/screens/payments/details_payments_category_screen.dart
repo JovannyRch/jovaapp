@@ -3,6 +3,7 @@ import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
 import 'package:jova_app/models/CategoryPayments.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
+import 'package:jova_app/screens/general/pdf_viewer.dart';
 import 'package:jova_app/screens/payments/details_payment.dart';
 import 'package:jova_app/screens/payments/new_payment_page.dart';
 import 'package:jova_app/screens/payments/new_payments_category_page.dart';
@@ -57,7 +58,7 @@ class _DetailsPaymentsCategoryScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text("Detalles pagos"),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -85,6 +86,23 @@ class _DetailsPaymentsCategoryScreenState
               }
             },
           ),
+          //PDF
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () async {
+              final url =
+                  "${API_URL}/payments_categories/${widget.categoryId}/report";
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PDFViewerScreen(
+                    url: url,
+                    title: "Registro de pagos",
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
       backgroundColor: kBackgroundColor,
@@ -92,44 +110,47 @@ class _DetailsPaymentsCategoryScreenState
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _header(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          onDelete();
-                        },
-                        child: const Text(
-                          "Eliminar",
-                          style: TextStyle(color: Colors.red),
+          : RefreshIndicator(
+              onRefresh: refresh,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _header(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            onDelete();
+                          },
+                          child: const Text(
+                            "Eliminar",
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => NewPaymentsCategoryPage(
-                                category: response!,
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => NewPaymentsCategoryPage(
+                                  category: response!,
+                                ),
                               ),
-                            ),
-                          ).then((value) {
-                            refresh();
-                          });
-                        },
-                        child: const Text("Editar"),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  _payments(),
-                ],
+                            ).then((value) {
+                              refresh();
+                            });
+                          },
+                          child: const Text("Editar"),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    _payments(),
+                  ],
+                ),
               ),
             ),
     );
@@ -143,6 +164,13 @@ class _DetailsPaymentsCategoryScreenState
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            //title
+            Info(
+              title: "Categoría",
+              content: response!.name!,
+            ),
+            const SizedBox(height: 15),
+
             if (response!.customer != null) ...[
               Info(title: "Responsable", content: response!.customer!.name!),
               const SizedBox(height: 15),
@@ -195,7 +223,7 @@ class _DetailsPaymentsCategoryScreenState
         title: "Presupuesto",
         content: formatCurrency(double.parse(response!.budget!)),
       ),
-      const SizedBox(height: 15),
+      const Divider(),
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,

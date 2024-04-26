@@ -4,16 +4,16 @@ import 'package:jova_app/api/api.dart';
 import 'package:jova_app/const/conts.dart';
 import 'package:jova_app/models/CategoryPayments.dart';
 import 'package:jova_app/models/Reponses/PaymentCategoryDetails.dart';
+import 'package:jova_app/screens/payments/new_payment_page.dart';
 import 'package:jova_app/utils/formatCurrency.dart';
 import 'package:jova_app/utils/formatDate.dart';
 import 'package:jova_app/utils/sendWhatsAppMessage.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
 import 'package:jova_app/widgets/InfoText.dart';
 
-class DetailsPayment extends StatelessWidget {
+class DetailsPayment extends StatefulWidget {
   final Payment payment;
   final PaymentCategoryDetailsResponse category;
-  final Dio _dio = Dio();
 
   DetailsPayment({
     Key? key,
@@ -22,10 +22,54 @@ class DetailsPayment extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<DetailsPayment> createState() => _DetailsPaymentState();
+}
+
+class _DetailsPaymentState extends State<DetailsPayment> {
+  final Dio _dio = Dio();
+  late Payment payment;
+  bool hasChanges = false;
+
+  initState() {
+    super.initState();
+    payment = widget.payment;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Detalles del Pago"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              onDelete(context);
+            },
+            icon: const Icon(Icons.delete),
+          ),
+          //Edit
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewPaymentPage(
+                    categoryId: widget.category.id!,
+                    payment: payment,
+                  ),
+                ),
+              ).then((value) {
+                if (value != null) {
+                  setState(() {
+                    hasChanges = true;
+                    payment = value;
+                  });
+                }
+              });
+            },
+            icon: const Icon(Icons.edit),
+          ),
+        ],
       ),
       backgroundColor: kBackgroundColor,
       body: Padding(
@@ -38,7 +82,7 @@ class DetailsPayment extends StatelessWidget {
                 children: [
                   Info(
                     title: "Categoría",
-                    content: category.name!,
+                    content: widget.category.name!,
                   ),
                   const SizedBox(height: 15),
                   Info(
@@ -72,7 +116,7 @@ class DetailsPayment extends StatelessWidget {
                     title: "Acomulado",
                     content: formatCurrency(
                       double.parse(
-                        category.total.toString(),
+                        widget.category.total.toString(),
                       ),
                     ),
                   ),
@@ -84,15 +128,17 @@ class DetailsPayment extends StatelessWidget {
               onPressed: () {
                 onSendMessage();
               },
-              child: const Text("Enviar por WhatsApp"),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 10),
+                  Text(
+                    "Compartir por WhatsApp",
+                  ),
+                ],
+              ),
             ),
-            TextButton(
-              onPressed: () {
-                onDelete(context);
-              },
-              child:
-                  const Text("Eliminar", style: TextStyle(color: Colors.red)),
-            )
           ],
         ),
       ),
@@ -100,7 +146,7 @@ class DetailsPayment extends StatelessWidget {
   }
 
   void onSendMessage() {
-    String message = "Registro de Pago - ${category.name}\n\n";
+    String message = "Registro de Pago - ${widget.category.name}\n\n";
     message +=
         "Monto: ${formatCurrency(double.parse(payment.amount.toString()))}\n";
     message += "Fecha: ${formatDate(payment.date!)}\n";
@@ -108,8 +154,8 @@ class DetailsPayment extends StatelessWidget {
       message += "Notas: ${payment.notes}\n";
     }
     message +=
-        "\nTotal acomulado: ${formatCurrency(double.parse(category.total.toString()))}\n";
-    sendWhatsAppMessage(message, category.customer!.phoneNumber!);
+        "\nTotal acomulado: ${formatCurrency(double.parse(widget.category.total.toString()))}\n";
+    sendWhatsAppMessage(message, widget.category.customer!.phoneNumber!);
   }
 
   void onDelete(BuildContext context) {

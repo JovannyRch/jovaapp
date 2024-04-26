@@ -6,8 +6,9 @@ import 'package:jova_app/widgets/DateInputPicket.dart';
 
 class NewPaymentPage extends StatefulWidget {
   final int categoryId;
+  final Payment? payment;
 
-  NewPaymentPage({required this.categoryId});
+  NewPaymentPage({required this.categoryId, this.payment});
 
   @override
   _NewPaymentPageState createState() => _NewPaymentPageState();
@@ -18,11 +19,22 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   final _amountController = TextEditingController();
   final _dateController = TextEditingController();
   final _notesController = TextEditingController();
+  bool isEditing = false;
 
   @override
   initState() {
     super.initState();
+    _init();
+  }
+
+  void _init() {
     _dateController.text = DateTime.now().toString().substring(0, 10);
+    if (widget.payment != null) {
+      isEditing = true;
+      _amountController.text = widget.payment!.amount!;
+      _dateController.text = widget.payment!.date!;
+      _notesController.text = widget.payment!.notes ?? '';
+    }
   }
 
   void _submitForm() {
@@ -40,14 +52,17 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   Future<void> _sendPaymentData(Payment payment) async {
     try {
       var dio = Dio();
-      final response = await dio.post("${API_URL}/payments", data: {
-        'category_id': payment.categoryId,
-        'amount': payment.amount,
-        'date': payment.date,
-        'notes': payment.notes,
-      });
+      final response = isEditing
+          ? await dio.put(
+              '$API_URL/payments/${widget.payment!.id}',
+              data: payment.toJson(),
+            )
+          : await dio.post(
+              '$API_URL/payments',
+              data: payment.toJson(),
+            );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         Payment newPayment = Payment.fromJson(response.data);
         Navigator.pop(context, newPayment);
       } else {
@@ -89,7 +104,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
             const SizedBox(height: 5),
             TextFormField(
               controller: _amountController,
-              autofocus: true,
+              autofocus: !isEditing,
               decoration: InputDecoration(labelText: 'Monto'),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -104,7 +119,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submitForm,
-              child: Text('Registrar Pago'),
+              child: Text(isEditing ? 'Editar' : 'Registrar'),
             ),
           ],
         ),

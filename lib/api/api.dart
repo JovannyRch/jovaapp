@@ -54,6 +54,8 @@ class Api {
     try {
       Response response =
           await dio.get('$API_URL/payments_categories/$categoryId/details');
+      print('$API_URL/payments_categories/$categoryId/details');
+      print("response.data: ${response.data}");
       PaymentCategoryDetailsResponse details =
           PaymentCategoryDetailsResponse.fromJson(response.data);
       return details;
