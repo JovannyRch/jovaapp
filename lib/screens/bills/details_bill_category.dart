@@ -7,6 +7,7 @@ import 'package:jova_app/models/Reponses/BillCategoryDetails.dart';
 import 'package:jova_app/screens/bills/details_bill_screen.dart';
 import 'package:jova_app/screens/bills/new_bill_category_screen.dart';
 import 'package:jova_app/screens/bills/new_bill_screen.dart';
+import 'package:jova_app/screens/general/pdf_viewer.dart';
 import 'package:jova_app/utils/formatCurrency.dart';
 import 'package:jova_app/utils/formatDate.dart';
 import 'package:jova_app/widgets/InfoCard.dart';
@@ -79,6 +80,22 @@ class _DetailsBillCategoryState extends State<DetailsBillCategory> {
               }
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () async {
+              final url =
+                  "${API_URL}/bill_categories/${widget.categoryId}/report";
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PDFViewerScreen(
+                    url: url,
+                    title: "Registro de gastos",
+                  ),
+                ),
+              );
+            },
+          )
         ],
       ),
       backgroundColor: kBackgroundColor,

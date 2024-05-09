@@ -149,6 +149,7 @@ class _DetailsPaymentsCategoryScreenState
                     ),
                     const SizedBox(height: 10),
                     _payments(),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.35),
                   ],
                 ),
               ),

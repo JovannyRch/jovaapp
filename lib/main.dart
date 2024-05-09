@@ -13,6 +13,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Jova App',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.deepOrange,
+      ),
       home: MainPage(),
     );
   }
